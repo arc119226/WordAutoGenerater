@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="full_prod_x64" name="WordAutoGenerater"><!--project name-->
+	<property name="package.name" value="WordAutoGenerater-1.0"/>
+	<property name="src.dir" value="src"/>
+	<property name="lib.dir" value="lib"/>
+	<property name="config.dir" value="config"/>
+	<property name="resource.dir" value="resource"/>
+	<property name="classes.dir" value="classes"/>
+    <property name="output.dir" value="dest"/>
+	<property name="install.dir" value="install"/>
+	<property name="release.dir" value="release"/>
+	<property name="run.bat" value="run.bat"/>
+	<property name="jdk.version" value="1.8"/>
+	<property name="ant.build.javac.source" value="${jdk.version}"/>
+	<property name="ant.build.javac.target" value="${jdk.version}"/>
+    <property name="jarname" value="${package.name}.jar"/>
+
+    <property name="mainclass" value="com.arcare.document.docx.facade.StarterV2"/>
+
+    <!-- lib path -->
+    <path id="lib-classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+    <path id="testlib-classpath">
+        <fileset dir="${test.lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+	<target name="clean" description="clean up" >
+	    <!-- Delete the output directory trees -->
+	    <delete dir="${classes.dir}"/>
+		<delete dir="${output.dir}"/>
+		<delete dir="${release.dir}"/>
+	</target>
+
+    <!-- 1.init create output dir -->
+    <target name="init" depends="clean">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${output.dir}"/>
+    	<mkdir dir="${release.dir}"/>
+    </target>
+
+    <!-- 2.compile -->
+    <target name="compile" depends="init">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" encoding="UTF-8">
+        	<classpath refid="lib-classpath"/>
+        </javac>
+    </target>
+
+	<!-- generate release -->
+	<target name="build" depends="compile">
+        <copy todir="${output.dir}/${lib.dir}">
+            <fileset dir="${lib.dir}"/>
+        </copy>
+    	<copy todir="${output.dir}/${resource.dir}">
+    	    <fileset dir="${resource.dir}"/>
+    	</copy>
+    	<copy todir="${output.dir}">
+    	    <fileset dir="${install.dir}"/>
+    	</copy>
+
+    	<!--Create a property containing all .jar files,
+        prefix lib/, and seperated with a space-->
+        <pathconvert property="mf.classpath" pathsep=" ">
+            <mapper>
+                <chainedmapper>
+                    <!-- jar remove dir -->
+                    <flattenmapper/>
+                    <!-- add lib/ prefix -->
+                    <globmapper from="*" to="lib/*"/>
+                </chainedmapper>
+            </mapper>
+            <path refid="lib-classpath"/>
+         </pathconvert>
+        <!-- jar output path -->
+        <jar destfile="${output.dir}/${jarname}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-class" value="${mainclass}"/>
+                <attribute name="Class-Path" value="${mf.classpath}"/>
+            </manifest>
+        </jar>
+	</target>
+	
+    <!-- package prod v2 x64-->
+    <target name="full_prod_v2_x64" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}V2_prod"/>
+    	</copy>
+
+        <echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>	
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+    	<echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">xcopy /s/y %cd%\amd64\prunsrv.exe %cd% ${line.separator}</echo>	
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+    	
+    	<zip destfile="${release.dir}/${package.name}_prod_x64.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package prod x64-->
+    <target name="full_prod_x64" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}_prod"/>
+    	</copy>
+
+        <echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>	
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+    	<echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">xcopy /s/y %cd%\amd64\prunsrv.exe %cd% ${line.separator}</echo>	
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+    	
+    	<zip destfile="${release.dir}/${package.name}_prod_x64.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package prod v2 x86-->
+    <target name="full_prod_v2_x86" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}V2_prod"/>
+    	</copy>
+    	
+    	<echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+        <echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+
+    	<zip destfile="${release.dir}/${package.name}_prod_x86.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package prod x86-->
+    <target name="full_prod_x86" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}_prod"/>
+    	</copy>
+    	
+    	<echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+        <echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+
+    	<zip destfile="${release.dir}/${package.name}_prod_x86.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package test v2 x64-->
+    <target name="full_test_v2_x64" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}V2"/>
+    	</copy>
+
+        <echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>	
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+    	<echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">xcopy /s/y %cd%\amd64\prunsrv.exe %cd% ${line.separator}</echo>	
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+    	
+    	<zip destfile="${release.dir}/${package.name}_test_x64.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package test x64-->
+    <target name="full_test_x64" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}"/>
+    	</copy>
+
+        <echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>	
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+    	<echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">xcopy /s/y %cd%\amd64\prunsrv.exe %cd% ${line.separator}</echo>	
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+    	
+    	<zip destfile="${release.dir}/${package.name}_test_x64.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package test v2 x86-->
+    <target name="full_test_v2_x86" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}V2"/>
+    	</copy>
+    	
+    	<echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+        <echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+
+    	<zip destfile="${release.dir}/${package.name}_test_x86.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+	
+    <!-- package test x86-->
+    <target name="full_test_x86" depends="build">
+    	<copy todir="${output.dir}/${config.dir}">
+    		<fileset dir="${config.dir}"/>
+    	</copy>
+    	
+    	<echo file="dest/runner.bat" append="false">java -jar ${package.name}.jar</echo>
+
+    	<echo file="dest/uninstall.bat" append="true">prunsrv //DS//${package.name} ${line.separator}</echo>
+        <echo file="dest/uninstall.bat" append="true">pause</echo>
+
+    	<echo file="dest/install.bat" append="true">%cd%\prunsrv install ${package.name} --DisplayName="${package.name}" --Install=%cd%\prunsrv.exe --JvmMx=1024M --JvmMs=256M --JvmMs=1M --Jvm=auto --StartMode=jvm --StopMode=jvm --Classpath=%cd%\${package.name}.jar --StartClass=${mainclass} --StartMethod=main --StopMode=jvm --StopClass=${mainclass} --StopMethod=stop --StdOutput=stdout.txt --StdError=stderr.txt ${line.separator}</echo>
+    	<echo file="dest/install.bat" append="true">pause</echo>
+
+    	<zip destfile="${release.dir}/${package.name}_test_x86.zip"
+    	     basedir="${output.dir}"
+    	     update="true"/>
+    </target>
+</project>
